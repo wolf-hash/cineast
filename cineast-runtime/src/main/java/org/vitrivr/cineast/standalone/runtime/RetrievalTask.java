@@ -48,7 +48,8 @@ public class RetrievalTask implements Callable<Pair<RetrievalTask, List<ScoreEle
   public Pair<RetrievalTask, List<ScoreElement>> call() throws Exception {
     LOGGER.traceEntry();
     long start = System.currentTimeMillis();
-    Thread.currentThread().setName(Thread.currentThread().getName()+"-"+retriever.getClass().getSimpleName());
+    nameThread();
+    
     LOGGER.debug("starting {}", retriever.getClass().getSimpleName());
     List<ScoreElement> result;
     if (this.query == null) {
@@ -61,7 +62,14 @@ public class RetrievalTask implements Callable<Pair<RetrievalTask, List<ScoreEle
     LOGGER.debug("{}.getSimilar() done in {} ms, {} results", retriever.getClass().getSimpleName(), stop - start, result.size());
     return LOGGER.traceExit(new Pair<RetrievalTask, List<ScoreElement>>(this, result));
   }
-
+  
+  private void nameThread() {
+    String currentThreadName = Thread.currentThread().getName();
+    if(!currentThreadName.endsWith(retriever.getClass().getSimpleName())){
+      Thread.currentThread().setName(currentThreadName.substring(0, currentThreadName.lastIndexOf('-'))+"-"+retriever.getClass().getSimpleName());
+    }
+  }
+  
   public Retriever getRetriever() {
     return retriever;
   }
