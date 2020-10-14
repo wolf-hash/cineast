@@ -37,7 +37,7 @@ public class CottontailEntityCreator implements EntityCreator {
   }
 
   private void init() {
-    cottontail.createSchema("cineast");
+    cottontail.ensureSchemaBlocking("cineast");
   }
 
   @Override
@@ -125,7 +125,7 @@ public class CottontailEntityCreator implements EntityCreator {
     return true;
   }
 
-  public void createIndex(String entityName, String attribute, IndexType type) {
+  public boolean createIndex(String entityName, String attribute, IndexType type) {
     Entity entity = CottontailMessageBuilder.entity(entityName);
     Index index = Index.newBuilder().setEntity(entity)
         .setName("index-" + type.name().toLowerCase() + "-" + entity.getSchema().getName() + "_" + entity.getName() + "_" + attribute)
@@ -133,6 +133,7 @@ public class CottontailEntityCreator implements EntityCreator {
     /* Cottontail ignores index params as of july 19 */
     CreateIndexMessage idxMessage = CreateIndexMessage.newBuilder().setIndex(index).addColumns(attribute).build();
     cottontail.createIndexBlocking(idxMessage);
+    return true;
   }
 
   @Override
@@ -161,23 +162,23 @@ public class CottontailEntityCreator implements EntityCreator {
   }
 
   @Override
-  public boolean createFeatureEntity(String featurename, boolean unique, int length,
+  public boolean createFeatureEntity(String featureEntityName, boolean unique, int length,
       String... featureNames) {
     final AttributeDefinition[] attributes = Arrays.stream(featureNames)
         .map(s -> new AttributeDefinition(s, VECTOR, length))
         .toArray(AttributeDefinition[]::new);
-    return this.createFeatureEntity(featurename, unique, attributes);
+    return this.createFeatureEntity(featureEntityName, unique, attributes);
   }
 
   @Override
-  public boolean createFeatureEntity(String featurename, boolean unique,
+  public boolean createFeatureEntity(String featureEntityName, boolean unique,
       AttributeDefinition... attributes) {
     final AttributeDefinition[] extended = new AttributeDefinition[attributes.length + 1];
     final HashMap<String, String> hints = new HashMap<>(1);
 
     extended[0] = new AttributeDefinition("id", AttributeDefinition.AttributeType.STRING, hints);
     System.arraycopy(attributes, 0, extended, 1, attributes.length);
-    return this.createEntity(featurename, extended);
+    return this.createEntity(featureEntityName, extended);
   }
 
   @Override
@@ -219,19 +220,17 @@ public class CottontailEntityCreator implements EntityCreator {
 
   @Override
   public boolean createHashNonUniqueIndex(String entityName, String column) {
-    this.createIndex(entityName, column, IndexType.HASH);
-    return true;
+    return this.createIndex(entityName, column, IndexType.HASH);
   }
 
   @Override
   public boolean existsEntity(String entityName) {
-    return false;
+    return this.cottontail.existsEntity(entityName);
   }
 
   @Override
   public boolean dropEntity(String entityName) {
-    final Entity entity = CottontailMessageBuilder.entity(CottontailMessageBuilder.CINEAST_SCHEMA, entityName);
-    cottontail.dropEntityBlocking(entity);
+    cottontail.dropEntityBlocking(CottontailWrapper.entityByName(entityName));
     return true;
   }
 

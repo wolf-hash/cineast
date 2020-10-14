@@ -71,21 +71,6 @@ public interface DBSelector {
   <T extends DistanceElement> List<T> getBatchedNearestNeighbours(int k, List<float[]> vectors,
       String column, Class<T> distanceElementClass, List<ReadableQueryConfig> configs);
 
-  /**
-   * Performs a combined kNN-search with multiple query vectors. That is, the storage engine is tasked to perform the kNN search for each vector and then merge the partial result sets pairwise using the desired MergeOperation.
-   *
-   * @param k The number k vectors to return per query.
-   * @param vectors The list of vectors to use.
-   * @param column The column to perform the kNN search on.
-   * @param distanceElementClass class of the {@link DistanceElement} type
-   * @param configs The query configuration, which may contain distance definitions or query-hints.
-   * @param <T> The type T of the resulting <T> type of the {@link DistanceElement}.
-   * @return List of results.
-   */
-  <T extends DistanceElement> List<T> getCombinedNearestNeighbours(int k, List<float[]> vectors,
-      String column, Class<T> distanceElementClass, List<ReadableQueryConfig> configs,
-      MergeOperation merge, Map<String, String> options);
-
   List<Map<String, PrimitiveTypeProvider>> getNearestNeighbourRows(int k, float[] vector,
       String column, ReadableQueryConfig config);
 
@@ -157,12 +142,12 @@ public interface DBSelector {
 
   /**
    * Performs a boolean lookup based on multiple conditions, linked with AND. Each element of the list specifies one of the conditions - left middle right, i.e. id IN (1, 5, 7)
-   *
-   * @param conditions conditions which will be linked by AND
+   *  @param conditions conditions which will be linked by AND
    * @param identifier column upon which the retain operation will be performed if the database layer does not support compound boolean retrieval.
    * @param projection Which columns shall be selected
+   * @param qc
    */
-  default List<Map<String, PrimitiveTypeProvider>> getRowsAND(List<Triple<String, RelationalOperator, List<PrimitiveTypeProvider>>> conditions, String identifier, List<String> projection) {
+  default List<Map<String, PrimitiveTypeProvider>> getRowsAND(List<Triple<String, RelationalOperator, List<PrimitiveTypeProvider>>> conditions, String identifier, List<String> projection, ReadableQueryConfig qc) {
     HashMap<String, Map<String, PrimitiveTypeProvider>> relevant = new HashMap<>();
     for (Triple<String, RelationalOperator, List<PrimitiveTypeProvider>> condition : conditions) {
       List<Map<String, PrimitiveTypeProvider>> rows = this.getRows(condition.getLeft(), condition.getMiddle(), condition.getRight());

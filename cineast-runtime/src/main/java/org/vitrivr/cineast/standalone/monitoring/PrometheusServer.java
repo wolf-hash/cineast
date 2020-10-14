@@ -20,7 +20,7 @@ public class PrometheusServer {
 
   private static boolean initalized = false;
   private static final Logger LOGGER = LogManager.getLogger();
-  private static Optional<Server> server;
+  private static Optional<Server> server = Optional.empty();
   private static final Semaphore lock = new Semaphore(1);
 
   public static synchronized void initialize() {
@@ -30,10 +30,12 @@ public class PrometheusServer {
     }
     if (initalized) {
       LOGGER.info("Prometheus already initalized");
+      lock.release();
       return;
     }
     if (!Config.sharedConfig().getMonitoring().enablePrometheus) {
       LOGGER.info("Prometheus monitoring not enabled");
+      lock.release();
       return;
     }
     DefaultExports.initialize();

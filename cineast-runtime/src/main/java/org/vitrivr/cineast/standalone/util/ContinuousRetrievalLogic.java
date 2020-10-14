@@ -36,7 +36,7 @@ public class ContinuousRetrievalLogic {
     TObjectDoubleHashMap<Retriever> retrievers = Config.sharedConfig().getRetriever()
         .getRetrieversByCategory(category);
     if (retrievers.isEmpty()) {
-      LOGGER.warn("Empty retriever list for query {}, category {} and config {}, returning no results", qc, category, config);
+      LOGGER.warn("Empty retriever list: \n query {} \n category {} \n config {}\n returning no results", qc, category, config);
       return new ArrayList<>(0);
     }
     return ContinuousQueryDispatcher.retrieve(qc, retrievers, initializer, config, this.segmentReader);
@@ -101,8 +101,8 @@ public class ContinuousRetrievalLogic {
     ContinuousQueryDispatcher.removeRetrievalResultListener(listener);
   }
 
-  // TODO: Is this method actually needed?
   public void shutdown() {
     ContinuousQueryDispatcher.shutdown();
+    segmentReader.close();
   }
 }

@@ -54,7 +54,7 @@ public class ExtractionDispatcher {
     this.context = context;
 
     if (this.fileHandlerThread == null) {
-      this.handler = new GenericExtractionItemHandler(this.pathProvider, this.context, this.context.sourceType());
+      this.handler = new GenericExtractionItemHandler(this.pathProvider, this.context, this.context.getType());
       this.fileHandlerThread = new Thread((GenericExtractionItemHandler) handler);
     } else {
       LOGGER.warn("You cannot initialize the current instance of ExtractionDispatcher again!");
@@ -75,6 +75,21 @@ public class ExtractionDispatcher {
       threadRunning = true;
     } else {
       LOGGER.warn("You cannot start the current instance of ExtractionDispatcher again!");
+    }
+  }
+
+  /**
+   * Blocks until the extraction process thread is completed.
+   */
+  public synchronized void block() {
+    if (fileHandlerThread == null) {
+      LOGGER.warn("Tried to wait for extraction thread before extraction thread was initialized!");
+      return;
+    }
+    try {
+      fileHandlerThread.join();
+    } catch (InterruptedException e) {
+      LOGGER.error("Interrupted while waiting for extraction thread to complete!");
     }
   }
 
